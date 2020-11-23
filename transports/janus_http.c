@@ -43,6 +43,8 @@
 #include "../ip-utils.h"
 #include "../utils.h"
 
+#define HIREPRO_MAX_NO_OF_CONNS  64000
+#define HIREPRO_LISTEN_BACKLOG_SIZE 1024
 
 /* Transport plugin information */
 #define JANUS_HTTP_VERSION			2
@@ -477,6 +479,8 @@ static struct MHD_Daemon *janus_http_create_daemon(gboolean admin, char *path,
 			}
 		}
 	}
+	JANUS_LOG(LOG_INFO, "Bumping up NoOf-HTTP-Conns to %ld. ListenBackLogSize to %u ",
+            HIREPRO_MAX_NO_OF_CONNS, HIREPRO_LISTEN_BACKLOG_SIZE);
 
 	if(!secure) {
 		/* HTTP web server */
@@ -493,7 +497,9 @@ static struct MHD_Daemon *janus_http_create_daemon(gboolean admin, char *path,
 				path,
 				MHD_OPTION_NOTIFY_COMPLETED, &janus_http_request_completed, NULL,
 				MHD_OPTION_CONNECTION_TIMEOUT, 120,
-				MHD_OPTION_END);
+				MHD_OPTION_CONNECTION_LIMIT, HIREPRO_MAX_NO_OF_CONNS,
+					MHD_OPTION_LISTEN_BACKLOG_SIZE, HIREPRO_LISTEN_BACKLOG_SIZE,
+					MHD_OPTION_END);
 		} else {
 			/* Bind to the interface that was specified */
 			JANUS_LOG(LOG_VERB, "Binding to %s '%s' for the %s API %s webserver\n",
@@ -509,7 +515,9 @@ static struct MHD_Daemon *janus_http_create_daemon(gboolean admin, char *path,
 				MHD_OPTION_NOTIFY_COMPLETED, &janus_http_request_completed, NULL,
 				MHD_OPTION_SOCK_ADDR, ipv6 ? (struct sockaddr *)&addr6 : (struct sockaddr *)&addr,
 				MHD_OPTION_CONNECTION_TIMEOUT, 120,
-				MHD_OPTION_END);
+				MHD_OPTION_CONNECTION_LIMIT, HIREPRO_MAX_NO_OF_CONNS,
+					MHD_OPTION_LISTEN_BACKLOG_SIZE, HIREPRO_LISTEN_BACKLOG_SIZE,
+					MHD_OPTION_END);
 		}
 	} else {
 		/* HTTPS web server, read certificate and key */
@@ -534,7 +542,9 @@ static struct MHD_Daemon *janus_http_create_daemon(gboolean admin, char *path,
 				MHD_OPTION_HTTPS_MEM_KEY, cert_key_bytes,
 				MHD_OPTION_HTTPS_KEY_PASSWORD, password,
 				MHD_OPTION_CONNECTION_TIMEOUT, 120,
-				MHD_OPTION_END);
+				MHD_OPTION_CONNECTION_LIMIT, HIREPRO_MAX_NO_OF_CONNS,
+					MHD_OPTION_LISTEN_BACKLOG_SIZE, HIREPRO_LISTEN_BACKLOG_SIZE,
+					MHD_OPTION_END);
 		} else {
 			/* Bind to the interface that was specified */
 			JANUS_LOG(LOG_VERB, "Binding to %s '%s' for the %s API %s webserver\n",
@@ -554,7 +564,9 @@ static struct MHD_Daemon *janus_http_create_daemon(gboolean admin, char *path,
 				MHD_OPTION_HTTPS_KEY_PASSWORD, password,
 				MHD_OPTION_SOCK_ADDR, ipv6 ? (struct sockaddr *)&addr6 : (struct sockaddr *)&addr,
 				MHD_OPTION_CONNECTION_TIMEOUT, 120,
-				MHD_OPTION_END);
+				MHD_OPTION_CONNECTION_LIMIT, HIREPRO_MAX_NO_OF_CONNS,
+					MHD_OPTION_LISTEN_BACKLOG_SIZE, HIREPRO_LISTEN_BACKLOG_SIZE,
+					MHD_OPTION_END);
 		}
 	}
 	return daemon;
